@@ -1,0 +1,13 @@
+app = "den4ik"
+primary_region = "waw"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[processes]
+  app = "python main.py"
+
+[vm]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

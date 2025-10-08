@@ -21,7 +21,6 @@ async def _job_ping(context: ContextTypes.DEFAULT_TYPE):
 async def morning(update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
-    # 1) парсим время
     t = DEFAULT_TIME
     if context.args:
         try:
@@ -31,10 +30,8 @@ async def morning(update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Формат: /morning HH:MM (например 07:30)")
             return
 
-    # 2) делаем TZ-aware время (КЛЮЧЕВАЯ ПРАВКА)
     aware_time = dtime(t.hour, t.minute, tzinfo=DEFAULT_TZ)
 
-    # 3) берём очередь надёжно
     jq = context.job_queue or context.application.job_queue
     if jq is None:
         await update.message.reply_text(
@@ -42,18 +39,16 @@ async def morning(update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # 4) удаляем старые задачи и ставим новую
     for j in jq.get_jobs_by_name(_job_name(chat_id)) or []:
         j.schedule_removal()
 
     jq.run_daily(
         _job_ping,
-        time=aware_time,  # <-- время уже с таймзоной
+        time=aware_time,
         name=_job_name(chat_id),
         chat_id=chat_id,
     )
 
-    # 5) показываем, когда будет первый запуск
     now = datetime.now(DEFAULT_TZ)
     first_run = now.replace(hour=t.hour, minute=t.minute, second=0, microsecond=0)
     if first_run <= now:

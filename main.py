@@ -7,18 +7,19 @@ from handlers.daily import register as daily_register
 from config import TOKEN
 
 
-def main():
+def build_app():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CommandHandler("weather", weather))
     city_register(app)
     daily_register(app)
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 8000)),
-        url_path=TOKEN,
-        webhook_url=f"https://crooked-starlene-popovbot-21e32d60.koyeb.app/{TOKEN}",
-    )
+    return app
+
+
+def main():
+    app = build_app()
+
+    app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
